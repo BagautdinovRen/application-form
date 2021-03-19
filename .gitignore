@@ -1,0 +1,4 @@
+.composer
+.ssh
+.idea
+docker/mysql/data

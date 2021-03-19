@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  #PHP Service
+  app:
+    build:
+      context: ./
+      dockerfile: ./docker/php/Dockerfile
+    image: php:8.0-fpm
+    container_name: docker-lara-vue-spa
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - app-network
+
+  #Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: docker-lara-vue-spa_nginx
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "7080:80"
+      - "7443:443"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+
+  #MySQL Service
+  db:
+    image: mysql:5.7.24
+    container_name: docker-lara-vue-spa_mysql
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "33061:3306"
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql/
+      - ./docker/mysql/conf/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
